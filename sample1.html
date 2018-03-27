@@ -1,0 +1,86 @@
+<html>
+<header>
+	<script>
+		// Creating framework to render page dynamically
+		var PReact = {
+			version: 1.0,
+			render: function(item, whereToRender){
+				var rootDiv = document.getElementById(whereToRender);
+				var temp = document.createElement('div');
+				if(item.render){
+					temp.innerHTML = item.render();
+					item.divId = whereToRender;
+				} else {
+					temp.innerHTML = item;
+				}
+
+				var htmlObject = temp.firstChild;
+				if(rootDiv.firstChild){
+					rootDiv.removeChild(rootDiv.firstChild);
+				}
+				rootDiv.appendChild(htmlObject);
+				if(item.componentDidMount){
+					item.componentDidMount();
+				}
+			},
+			createClass: function(options){
+				return function(){
+					for(var index in options){
+						var prop = options[index];
+						this[index] = prop;
+					}
+					this.setState = function(props){
+						for(var index in props){
+							var prop = props[index];
+							this.state[index] = prop;
+						}
+						PReact.render(this, this.divId);
+					}
+				};
+			},
+			// creating instance
+			createElement: function(className){
+				var instance = new className();
+				instance.constructor();
+				instance.componentWillMount();
+				PReact.PageMapper[instance.id] = instance;
+				return instance;
+			},
+			PageMapper: {
+			}
+		}
+	</script>
+	<script>
+		function onLoad(){
+			var App = PReact.createClass({
+				id: 'MainScreen',
+				constructor: function(){
+					this.state = {
+						headerText: 'Hello World'
+					}
+				},
+				componentWillMount: function(){
+					debugger;
+				},
+				componentDidMount: function(){
+					debugger;
+				},
+				onButtonClick: function(options){
+					var instance = PReact.PageMapper[options];
+					instance.setState({headerText: 'Text Modified'});
+				},
+				render: function(){
+					var button = '<button type="button" onclick="('+this.onButtonClick+')(\'MainScreen\')">Change Header</button>';
+					return '<div><h1>'+this.state.headerText+'<h1>'+button+'<table style="width:100%"><tr><th>Firstname</th><th>Lastname</th><th>Age</th></tr><tr><td>Jill</td><td>Smith</td> <td>50</td></tr><tr><td>Eve</td><td>Jackson</td><td>94</td></tr></table></div>';
+				}
+			});
+
+			//document.getElementById('root').innerHTML = 'Hello World';
+			PReact.render(PReact.createElement(App),'root');
+		}
+	</script>
+</header>
+<body onload="onLoad()">
+	<div id="root"></div>
+</body>
+</html>
